@@ -1,0 +1,1 @@
+gcc -o tree tree.c; ./tree ; cat -A output.dot ; dot output.dot -Tpng > image.png ; feh image.png

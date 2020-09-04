@@ -3,6 +3,22 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+    //insert_node(root_node, 21);
+    //insert_node(root_node, 19);
+    //insert_node(root_node, 41);
+    //insert_node(root_node, 30);
+    //insert_node(root_node, 50);
+    //insert_node(root_node, 18);
+    //insert_node(root_node, 17);
+    //insert_node(root_node, 16);
+    //insert_node(root_node, 35);
+    //insert_node(root_node, 33);
+    //insert_node(root_node, 34);
+    //insert_node(root_node, 10);
+    //insert_node(root_node, 1);
+    //insert_node(root_node, 2);
+    //insert_node(root_node, 14);
 typedef struct node
 {
     int value;
@@ -41,6 +57,7 @@ node* insert_node(node *tree, int new_value)
     }
 
 }
+
 
 int max(int a, int b)
 {
@@ -106,8 +123,8 @@ void fill_mat(const node *tree, array *mat, int x, int y, int has_left_bro)
         mat->p[point_index++] = p;
 
         printf("mat[%d][%d] = %s\n", y, x, p->val);
-        fill_mat(tree->r_node, mat, x - x / 8, y + 1, tree->l_node == NULL ? 0 : 1);
-        fill_mat(tree->l_node, mat, x + (x / 8), y + 1, 0);
+        fill_mat(tree->r_node, mat, x - x / 4, y + 1, tree->l_node == NULL ? 0 : 1);
+        fill_mat(tree->l_node, mat, x + (x / 4), y + 1, 0);
     }
 }
 
@@ -158,6 +175,68 @@ void print(const node *tree)
     }
 }
 
+void fill_dot(const node *tree, FILE *f)
+{
+    char line[20];
+    memset(line, 0, 20);
+    if (tree != NULL)
+    {
+        if (tree->r_node != NULL) {
+            sprintf(line, "%d -- %d;\n", tree->value, tree->r_node->value);
+            fwrite(line, sizeof(char), strlen(line), f);
+            fill_dot(tree->r_node, f);
+        }
+        if (tree->l_node != NULL) {
+            sprintf(line, "%d -- %d;\n", tree->value, tree->l_node->value);
+            fwrite(line, sizeof(char), strlen(line), f);
+            fill_dot(tree->l_node, f);
+        }
+    }
+}
+
+void create_dot_file(const node *tree)
+{
+    FILE *f = fopen("output.dot", "w+");
+    if (!f)
+    {
+        fprintf(stderr, "unable to open output.dot");
+    }
+    char header[] = "graph {\n";
+    fwrite(header, sizeof(char), strlen(header), f);
+
+    fill_dot(tree, f);
+
+    char end_header[] = "}";
+    fwrite(end_header, sizeof(char), strlen(end_header), f);
+}
+
+node* rot_right(node *tree)
+{
+    if (tree != NULL && tree->r_node != NULL && tree->r_node->r_node != NULL)
+    {
+        node *tmp = tree;
+        tree = tree->r_node;
+        tree->l_node = tmp;
+        tmp->r_node = NULL;
+    }
+    return tree;
+}
+
+node* rot_left(node *tree)
+{
+    if (tree != NULL && tree->l_node != NULL && tree->l_node->l_node != NULL)
+    {
+        printf("rot_left\n");
+        node *tmp = tree;
+        tree = tree->l_node;
+        tree->r_node = tmp;
+        tmp->l_node = NULL;
+    }
+    printf("rot_left done\n");
+    return tree;
+}
+
+
 int main(int argc, const char *argv[])
 {
     node *root_node = (node*)malloc(sizeof(node));
@@ -166,6 +245,7 @@ int main(int argc, const char *argv[])
     root_node->l_node = NULL;
 
     printf("tree root_node = %p\n", root_node);
+    insert_node(root_node, 21);
     insert_node(root_node, 21);
     insert_node(root_node, 19);
     insert_node(root_node, 41);
@@ -181,12 +261,17 @@ int main(int argc, const char *argv[])
     insert_node(root_node, 1);
     insert_node(root_node, 2);
     insert_node(root_node, 14);
+    insert_node(root_node, 2882);
     int size = number_of_node(root_node);
     printf("size of the tree : %d\n", size);
     size = process_depth(root_node);
     printf("depth of the tree : %d\n", size);
 
+    root_node = rot_left(root_node);
+    printf("tree root_node = %p\n", root_node);
+
     print(root_node);
+    create_dot_file(root_node);
 
     return 0;
 }
