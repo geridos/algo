@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "tree.h" 
+#include "rotation.h" 
 
     //insert_node(root_node, 21);
     //insert_node(root_node, 19);
@@ -19,12 +20,6 @@
     //insert_node(root_node, 1);
     //insert_node(root_node, 2);
     //insert_node(root_node, 14);
-typedef struct node
-{
-    int value;
-    struct node *r_node;
-    struct node *l_node;
-} node;
 
 node* insert_node(node *tree, int new_value)
 {
@@ -46,18 +41,16 @@ node* insert_node(node *tree, int new_value)
     if (new_value <= tree->value)
     {
         //printf("rec on the r_node : %d >= %d\n", tree->value, new_value);
-        node *n = insert_node(tree->r_node, new_value);
-        tree->r_node = n;
+        node *n = insert_node(tree->l_node, new_value);
+        tree->l_node = n;
     }
     else
     {
         //printf("rec on the l_node : %d < %d\n", tree->value, new_value);
-        node *n = insert_node(tree->l_node, new_value);
-        tree->l_node = n;
+        node *n = insert_node(tree->r_node, new_value);
+        tree->r_node = n;
     }
-
 }
-
 
 int max(int a, int b)
 {
@@ -70,9 +63,8 @@ int process_depth(const node *tree)
 {
     if (tree != NULL)
         return max(process_depth(tree->r_node) + 1, process_depth(tree->l_node) + 1);
+    return 0;
 }
-
-
 
 int number_of_node(const node *tree)
 {
@@ -110,9 +102,9 @@ void fill_mat(const node *tree, array *mat, int x, int y, int has_left_bro)
 
         char *val = NULL;
         if (tree->l_node != NULL && tree->r_node == NULL)
-            asprintf(&val, "%d\\", tree->value);
-        else if (tree->r_node != NULL && tree->l_node == NULL)
             asprintf(&val, "/%d", tree->value);
+        else if (tree->r_node != NULL && tree->l_node == NULL)
+            asprintf(&val, "%d\\", tree->value);
         else if (tree->r_node != NULL && tree->l_node != NULL)
             asprintf(&val, "/%d\\", tree->value);
         else
@@ -123,8 +115,8 @@ void fill_mat(const node *tree, array *mat, int x, int y, int has_left_bro)
         mat->p[point_index++] = p;
 
         printf("mat[%d][%d] = %s\n", y, x, p->val);
-        fill_mat(tree->r_node, mat, x - x / 4, y + 1, tree->l_node == NULL ? 0 : 1);
-        fill_mat(tree->l_node, mat, x + (x / 4), y + 1, 0);
+        fill_mat(tree->l_node, mat, x - x / 4, y + 1, tree->l_node == NULL ? 0 : 1);
+        fill_mat(tree->r_node, mat, x + (x / 4), y + 1, 0);
     }
 }
 
@@ -134,7 +126,6 @@ void print(const node *tree)
     int depth = process_depth(tree);
     int size = number_of_node(tree);
     int size_row = depth * depth;
-    int size_mat = size_row * depth;
 
     array* mat = (array*)malloc(sizeof(array*));
     mat->p = (point**)malloc(sizeof(point*) * size);
@@ -181,15 +172,15 @@ void fill_dot(const node *tree, FILE *f)
     memset(line, 0, 20);
     if (tree != NULL)
     {
-        if (tree->r_node != NULL) {
-            sprintf(line, "%d -- %d;\n", tree->value, tree->r_node->value);
-            fwrite(line, sizeof(char), strlen(line), f);
-            fill_dot(tree->r_node, f);
-        }
         if (tree->l_node != NULL) {
             sprintf(line, "%d -- %d;\n", tree->value, tree->l_node->value);
             fwrite(line, sizeof(char), strlen(line), f);
             fill_dot(tree->l_node, f);
+        }
+        if (tree->r_node != NULL) {
+            sprintf(line, "%d -- %d;\n", tree->value, tree->r_node->value);
+            fwrite(line, sizeof(char), strlen(line), f);
+            fill_dot(tree->r_node, f);
         }
     }
 }
@@ -208,34 +199,8 @@ void create_dot_file(const node *tree)
 
     char end_header[] = "}";
     fwrite(end_header, sizeof(char), strlen(end_header), f);
+    fclose(f);
 }
-
-node* rot_right(node *tree)
-{
-    if (tree != NULL && tree->r_node != NULL && tree->r_node->r_node != NULL)
-    {
-        node *tmp = tree;
-        tree = tree->r_node;
-        tree->l_node = tmp;
-        tmp->r_node = NULL;
-    }
-    return tree;
-}
-
-node* rot_left(node *tree)
-{
-    if (tree != NULL && tree->l_node != NULL && tree->l_node->l_node != NULL)
-    {
-        printf("rot_left\n");
-        node *tmp = tree;
-        tree = tree->l_node;
-        tree->r_node = tmp;
-        tmp->l_node = NULL;
-    }
-    printf("rot_left done\n");
-    return tree;
-}
-
 
 int main(int argc, const char *argv[])
 {
@@ -245,33 +210,44 @@ int main(int argc, const char *argv[])
     root_node->l_node = NULL;
 
     printf("tree root_node = %p\n", root_node);
-    insert_node(root_node, 21);
-    insert_node(root_node, 21);
-    insert_node(root_node, 19);
-    insert_node(root_node, 41);
-    insert_node(root_node, 30);
-    insert_node(root_node, 50);
+    insert_node(root_node, 16);
     insert_node(root_node, 18);
     insert_node(root_node, 17);
-    insert_node(root_node, 16);
-    insert_node(root_node, 35);
-    insert_node(root_node, 33);
-    insert_node(root_node, 34);
+    insert_node(root_node, 19);
+    insert_node(root_node, 2);
     insert_node(root_node, 10);
     insert_node(root_node, 1);
-    insert_node(root_node, 2);
-    insert_node(root_node, 14);
-    insert_node(root_node, 2882);
+    insert_node(root_node, 21);
+
+    //insert_node(root_node, 21);
+    //insert_node(root_node, 22);
+    //insert_node(root_node, 19);
+    //insert_node(root_node, 41);
+    //insert_node(root_node, 30);
+    //insert_node(root_node, 50);
+    //insert_node(root_node, 18);
+    //insert_node(root_node, 17);
+    //insert_node(root_node, 16);
+    //insert_node(root_node, 35);
+    //insert_node(root_node, 33);
+    //insert_node(root_node, 34);
+    //insert_node(root_node, 10);
+    //insert_node(root_node, 1);
+    //insert_node(root_node, 2);
+    //insert_node(root_node, 14);
     int size = number_of_node(root_node);
     printf("size of the tree : %d\n", size);
     size = process_depth(root_node);
     printf("depth of the tree : %d\n", size);
 
     root_node = rot_left(root_node);
+    root_node = rot_left_right(root_node);
+    //get_balance(root_node);
+    create_dot_file(root_node);
     printf("tree root_node = %p\n", root_node);
 
     print(root_node);
-    create_dot_file(root_node);
+    //create_dot_file(root_node);
 
     return 0;
 }
