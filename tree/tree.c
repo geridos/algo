@@ -202,6 +202,21 @@ void create_dot_file(const node *tree)
     fclose(f);
 }
 
+void invert_tree(node *tree)
+{
+    if (tree == NULL)
+    {
+        return;
+    }
+    invert_tree(tree->l_node);
+    printf("going to switch child of %d\n", tree->value);
+    node *tmp = tree->l_node;
+    tree->l_node = tree->r_node;
+    tree->r_node = tmp;
+    invert_tree(tree->l_node);
+
+}
+
 int main(int argc, const char *argv[])
 {
     node *root_node = (node*)malloc(sizeof(node));
@@ -239,9 +254,10 @@ int main(int argc, const char *argv[])
     printf("size of the tree : %d\n", size);
     size = process_depth(root_node);
     printf("depth of the tree : %d\n", size);
+    //invert_tree(root_node);
 
-    root_node = rot_left(root_node);
-    root_node = rot_left_right(root_node);
+    //root_node = rot_left(root_node);
+    //root_node = rot_left_right(root_node);
     //get_balance(root_node);
     create_dot_file(root_node);
     printf("tree root_node = %p\n", root_node);
